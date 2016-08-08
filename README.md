@@ -1,5 +1,4 @@
 Copyright (C) 2016 Michael E Jolley
-
 This library is released under the MIT free software license.
 
 LibHudzy is a static library for Microsoft Windows. 
@@ -8,7 +7,6 @@ The implementation arranges opaque and transparent windows to compose visually c
 Use this library for developing desktop utilities/HUDs/widgets with visually rich UIs.
 
 Existing library bindings:
-
  - msvc  x86
  - mingw x86
  - mingw x64

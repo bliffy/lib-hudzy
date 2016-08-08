@@ -61,6 +61,7 @@ namespace _HUDZY_INTERNAL {
 		HBITMAP  hbm;
 		POINT    bmOffset;
 		HWND     hwnd;
+		BOOL     needsMove;
 	};
 
 } // namespace

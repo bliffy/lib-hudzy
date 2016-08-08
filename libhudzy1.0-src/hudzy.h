@@ -62,6 +62,8 @@ extern "C" {
 
 	VOID HudzyDraw(HUDZYGROUP hGroup);
 
+	HWND HudzyGetHWND(HUDZYREGION hRegion);
+
 	enum {
 		HUDZYOPT_TRANSPARENT = 1,
 		HUDZYOPT_SHOW_ON_TASKBAR = 2

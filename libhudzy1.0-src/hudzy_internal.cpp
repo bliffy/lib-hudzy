@@ -94,7 +94,7 @@ namespace _HUDZY_INTERNAL {
 	// Region methods.
 
 	HudzyRegion::HudzyRegion(DWORD dwOpts, UINT iX, UINT iY, UINT iW, UINT iH, HudzyGroup* hGroup, LPCSTR lpImage)
-		: hbm(NULL), hwnd(NULL)
+		: hbm(NULL), hwnd(NULL), needsMove(FALSE)
 	{
 		pos.x = iX;
 		pos.y = iY;
@@ -148,6 +148,11 @@ namespace _HUDZY_INTERNAL {
 
 	void HudzyRegion::draw(COLORREF crTransColor)
 	{
+		if (needsMove)  // implies !transparent
+		{
+			SetWindowPos(hwnd, NULL, pos.x, pos.y, 0, 0, SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_NOREDRAW | SWP_NOSENDCHANGING | SWP_NOSIZE | SWP_NOZORDER);
+			needsMove = FALSE;
+		}
 		if (hbm != NULL)
 		{
 			HDC hRealDC = GetDC(hwnd);
@@ -181,9 +186,11 @@ namespace _HUDZY_INTERNAL {
 	}
 	VOID HudzyRegion::moveBy(INT xDiff, INT yDiff)
 	{
+		if (xDiff == 0 && yDiff == 0)
+			return;
 		pos.x += xDiff; pos.y += yDiff;
 		if (!transparent)
-			MoveWindow(hwnd, pos.x, pos.y, size.cx, size.cy, FALSE);
+			needsMove = TRUE;
 	}
 
 
@@ -290,6 +297,12 @@ VOID HudzyDraw(HUDZYGROUP hGroup)
 {
 	assert(hGroup != NULL);
 	((_HUDZY_INTERNAL::HudzyGroup*)hGroup)->draw();
+}
+
+HWND HudzyGetHWND(HUDZYREGION hRegion)
+{
+	assert(hRegion != NULL);
+	return ((_HUDZY_INTERNAL::HudzyRegion*)hRegion)->hwnd;
 }
 
 HUDZYERROR HudzyGetLastError(VOID)
