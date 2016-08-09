@@ -1,4 +1,4 @@
-Copyright (C) 2016 Michael E Jolley
+Copyright (C) 2016 - Michael E Jolley
 This library is released under the MIT free software license.
 
 LibHudzy is a static library for Microsoft Windows. 

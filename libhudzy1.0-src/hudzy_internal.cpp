@@ -1,26 +1,10 @@
 // NOTICE: Do not include this file in your project! This file is an internal portion of the Hudzy library.
 /*
-The MIT License
+Copyright (c) 2016 - Michael E Jolley
 
-Copyright (c) 2016 Michael E Jolley
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
+This library is free software: you can redistribute it and/or modify
+it under the terms of the MIT License.
+You should have received a copy of the MIT License along with this program.
 */
 
 #include <vector>
@@ -59,6 +43,13 @@ namespace _HUDZY_INTERNAL {
 #endif
 		if (!RegisterClassEx(&wc))
 			HudzySetLastError(HUDZYERROR_CLASS_REGISTRY);
+	}
+
+	HudzyGroup::~HudzyGroup(VOID)
+	{
+		for (std::vector<HudzyRegion*>::iterator i = regions.begin(); i != regions.end(); i++)
+			if (*i != NULL) delete (*i);
+		UnregisterClass(wc.lpszClassName, wc.hInstance);
 	}
 
 	VOID HudzyGroup::drag(BOOL reset)
@@ -146,6 +137,12 @@ namespace _HUDZY_INTERNAL {
 			HudzySetLastError(HUDZYERROR_WINDOW_CREATE);
 	}
 
+	HudzyRegion::~HudzyRegion(VOID)
+	{
+		if (hwnd != NULL) CloseWindow(hwnd);
+		if (hbm != NULL) DeleteObject(hbm);
+	}
+
 	void HudzyRegion::draw(COLORREF crTransColor)
 	{
 		if (needsMove)  // implies !transparent
@@ -162,10 +159,8 @@ namespace _HUDZY_INTERNAL {
 			if (transparent)
 			{
 				BLENDFUNCTION bfunc;
-				bfunc.AlphaFormat = 0;
-				bfunc.BlendFlags = 0;
+				ZeroMemory(&bfunc, sizeof(BLENDFUNCTION));
 				bfunc.BlendOp = AC_SRC_OVER;
-				bfunc.SourceConstantAlpha = 0;
 				UpdateLayeredWindow(
 					hwnd,
 					hRealDC,
@@ -177,13 +172,13 @@ namespace _HUDZY_INTERNAL {
 					&bfunc,
 					ULW_COLORKEY);
 			}
-			else {
+			else
 				BitBlt(hRealDC, 0, 0, size.cx, size.cy, hdcMemory, bmOffset.x, bmOffset.y, SRCCOPY);
-			}
 			ReleaseDC(hwnd, hRealDC);
 			DeleteDC(hdcMemory);
 		}
 	}
+
 	VOID HudzyRegion::moveBy(INT xDiff, INT yDiff)
 	{
 		if (xDiff == 0 && yDiff == 0)
@@ -239,7 +234,6 @@ namespace _HUDZY_INTERNAL {
 			break;
 		}
 
-		// Get user callback in custom hwnd storage space 0
 		if (userProc != NULL) return CallWindowProc(userProc, hwnd, message, wParam, lParam);
 		else return DefWindowProc(hwnd, message, wParam, lParam);
 	}
@@ -309,3 +303,10 @@ HUDZYERROR HudzyGetLastError(VOID)
 {
 	return _HUDZY_INTERNAL::dwLastError;
 }
+
+VOID HudzyReleaseGroup(HUDZYGROUP& hGroup)
+{
+	if (hGroup != NULL) delete (_HUDZY_INTERNAL::HudzyGroup*)hGroup;
+	hGroup = NULL;
+}
+
